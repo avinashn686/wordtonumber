@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponseRedirect
 from myapp.form import *
+from django.contrib import messages
 # Create your views here.
 ones = {1: 'one', 2: 'two', 3: 'three', 4: 'four',
         5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine'}
@@ -13,19 +14,28 @@ elevens = {11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen',
 
 def homeform(request):
 
+    context = {}
+    context['form'] = Home_form()
     if request.method == "POST":
-
         logs = Home_form(request.POST)
         # inputs = '513012'
         if logs.is_valid():
             inputs = logs.cleaned_data['inputs']
-        out = convert(inputs)
-        # else:
+            out = convert(inputs)
+
+        else:
+            messages.info(
+                request, 'number is incorrect')
+            return HttpResponseRedirect('/homes/')
         # inputs = 82983
         # print(inputs)
         # else:
         #    c=0
+    out = out.split()
+    out = [x.capitalize() for x in out]
+    out = ' '.join(out)
     return render(request, "home.html", {'result': out})
+    # return render(request, "home.html", context)
 
 
 def thousands(a, word):
@@ -37,7 +47,7 @@ def thousands(a, word):
     if str(first_two_number[0]) == '1' and int(''.join(first_two_number)) > 10:
         for key, value in elevens.items():
             if key == int(''.join(first_two_number)):
-                word = value + word
+                word = value + ' ' + word
         return word
     elif number < 10:
         if number == 0:
@@ -45,12 +55,12 @@ def thousands(a, word):
         else:
             for key, value in ones.items():
                 if str(key) == str(first_two_number[1]):
-                    second_word = value + word
+                    second_word = value + ' ' + word
         return second_word
     elif int(first_two_number[1]) == 0 and number != 0:
         for key, value in tens.items():
             if str(first_two_number[0]) in str(key):
-                second_word = value + word
+                second_word = value + ' ' + word
         return second_word
     else:
         for key, value in tens.items():
@@ -61,20 +71,20 @@ def thousands(a, word):
             if int(first_two_number[1]) == key:
 
                 once_value = value
-        words = second_word + once_value + word
+        words = second_word + ' ' + once_value + ' ' + word
 
-        return words
+        # return words
         return words
 
 
 def hundred(a):
     hundred_value = a
-    result_word_h = 'hundred'
+    result_word_h = ' hundred'
     if int(''.join(hundred_value[1:])) == 0:
         hundred_word = hundred_value[0]
         for key, value in ones.items():
             if str(key) == hundred_word:
-                hundred_words = value + result_word_h
+                hundred_words = value + ' ' + result_word_h
                 return hundred_words
     elif int(hundred_value[1]) == 0:
         # print(hundred_value[0])
@@ -82,27 +92,27 @@ def hundred(a):
             if str(key) == hundred_value[0]:
                 hundred_place = value + result_word_h
             if str(key) == hundred_value[-1]:
-                onesplace = 'and' + value
-        hundred_words = hundred_place + onesplace
+                onesplace = 'and ' + value
+        hundred_words = hundred_place + ' ' + onesplace
         return hundred_words
     elif int(hundred_value[-1]) == 0:
         for key, value in ones.items():
             if str(key) == hundred_value[0]:
-                hundred_place = value + result_word_h
+                hundred_place = value + ' ' + result_word_h
         for key, value in tens.items():
             # print(hundred_value)
             if hundred_value[1] in str(key):
-                tens_place = 'and' + value
-        hundred_words = hundred_place + tens_place
+                tens_place = 'and ' + value
+        hundred_words = hundred_place + ' ' + tens_place
         return hundred_words
     elif int(''.join(hundred_value[1:])) < 20 and int(''.join(hundred_value[1:])) > 10:
         for key, value in ones.items():
             if str(key) == hundred_value[0]:
-                hundred_place = value + result_word_h
+                hundred_place = value + ' ' + result_word_h
         for key, value in elevens.items():
             if str(key) == ''.join(hundred_value[1:]):
                 tens_place = 'and ' + value
-        hundred_words = hundred_place + tens_place
+        hundred_words = hundred_place + ' ' + tens_place
         return hundred_words
     else:
         for key, value in ones.items():
@@ -113,30 +123,36 @@ def hundred(a):
         for key, value in tens.items():
             # print(key)
             if hundred_value[1] in str(key):
-                tens_place = 'and' + value
-        hundred_words = hundred_place + tens_place + onesplace
+                tens_place = 'and ' + value
+        hundred_words = hundred_place + ' ' + tens_place + ' ' + onesplace
         return hundred_words
 
 
 def convert(number):
 
     c = [digit for digit in str(number)]
+
     hundred_words = ''
-    if len(c) > 7:
+    if len(c) > 0 and c[0] == '0':
+        answer = "enter a valid number"
+    elif c[0] == '-':
+        answer = "enter a positive digit"
+    elif '.' in c:
+        answer = "only integer values are consdered"
+    elif len(c) >= 7:
         answer = "max limit is upto 6 digits"
-        return answer
+        # return answer
 
     elif len(c) == 6:
         first_position = c[0]
         word = 'lakh'
         for key, value in ones.items():
             if str(key) == first_position:
-                word = value + word
+                word = value + ' ' + word
         thousand_position = c[1:3]
         word_t = 'thousand'
         result_word_t = thousands(thousand_position, word_t)
-        word_h = 'hundred'
-        result_word_h = 'hundred'
+        result_word_h = ' hundred'
         hundred_value = c[-3:]
         number = ''.join(hundred_value)
         number = int(number)
@@ -175,11 +191,11 @@ def convert(number):
             if not hundred_words:
                 hundred_words = ' '
             answer = word + ' ' + result_word_t + ' ' + hundred_words
-    if len(c) == 5:
+    elif len(c) == 5:
         thousand_position = c[0:2]
         word = 'thousand'
         result_word_t = thousands(thousand_position, word)
-        result_word_h = 'hundred'
+        result_word_h = ' hundred'
         hundred_value = c[-3:]
         number = ''.join(hundred_value)
         number = int(number)
@@ -203,7 +219,7 @@ def convert(number):
                 for key, value in ones.items():
                     if hundred_value[1] == str(key):
                         onesplace = value
-                hundred_words = tens_place + onesplace
+                hundred_words = tens_place + ' ' + onesplace
         elif number >= 1:
             for key, value in ones.items():
                 if hundred_value[-1] == str(key):
@@ -218,15 +234,15 @@ def convert(number):
             if not hundred_words:
                 hundred_words = ''
             answer = result_word_t + ' ' + hundred_words
-    if len(c) == 4:
+    elif len(c) == 4:
         first_position = c[0]
         word = 'thousand'
         number = c[1:]
 
         for key, value in ones.items():
             if first_position == str(key):
-                word = value + word
-        result_word_h = 'hundred'
+                word = value + ' ' + word
+        result_word_h = ' hundred'
         hundred_value = c[-3:]
         if int(''.join(hundred_value[1:])) != 0:
             hundred_words = hundred(hundred_value)
@@ -239,8 +255,8 @@ def convert(number):
         else:
 
             answer = word + ' ' + hundred_words
-    if len(c) == 3:
-        result_word_h = 'hundred'
+    elif len(c) == 3:
+        result_word_h = ' hundred'
         hundred_value = c[-3:]
         hundred_words = hundred(hundred_value)
 
@@ -248,13 +264,13 @@ def convert(number):
             for key, value in ones.items():
                 if str(key) == c[0]:
 
-                    answer = value + result_word_h
+                    answer = value + ' ' + result_word_h
 
         else:
             if not hundred_words:
                 hundred_words = ''
             answer = hundred_words
-    if len(c) == 2:
+    elif len(c) == 2:
         first_position = c[0]
         if int(''.join(c)) < 20 and int(''.join(c)) > 10:
 
@@ -272,12 +288,14 @@ def convert(number):
             for key, value in ones.items():
                 if c[1] == str(key):
                     onesplace = value
-            answer = tens_place + onesplace
-    if len(c) == 1:
+            answer = tens_place + ' ' + onesplace
+    elif len(c) == 1:
         if int(c[0]) == 0:
             answer = 'zero'
         else:
             for key, value in ones.items():
                 if str(key) == c[0]:
                     answer = value
+    else:
+        pass
     return(answer)

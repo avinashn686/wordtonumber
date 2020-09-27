@@ -14,18 +14,45 @@
 <link rel="stylesheet" type="text/css" href='{% static "main.css" %}'>
 <div class="Heading">
   <h1>Welcome to the Number to Word Converter!</h1>
-<form action="{% url 'homes' %}" method="post">
+<form name= "ntow" action="{% url 'homes' %}" method="post" >
 {% csrf_token %}
+
 	<div class="form-group">
-	  <input type="number" class="form-control" placeholder="Enter a number lessthan 1000000 " name="inputs" id="inputs">
+	  <input type="number" class="form-control" placeholder="Enter a number lessthan 1000000 " name="inputs" id="inputs" >
 	</div>
 	<div class="form-group">
 	  <input type="text" class="form-control" placeholder="result" name="outputs" value="{{ result }}" disabled="True">
 
 	</div>
-
 <input type="submit" class="btn btn-secondary btn-block" value="submit" name="submit">
+<!-- <input type="submit" class="btn btn-secondary btn-block" value="submit" name="submit"onclick="myFunction(document.ntow.inputs)"> -->
+
+<!-- <script>
+function myFunction(inputtxt) {
+	var name = inputtxt;
+	var n = Math.floor(Number(name));
+
+    // return n !== Infinity && String(n) === name && n >= 0
+    if (n !== Infinity)
+    {
+    	if (String(n) === name)
+    	{
+    		if (n >= 0)
+    		{
+    			return true;
+    		}
+    	}
+    }
+    else
+    {
+    	alert('Please input numeric characters only');
+      	document.ntow.inputs.focus();
+      	return false;
+    }
+}
+</script> -->
 </form>
+
 	{{ form.errors }}
 </div>
 </body>
