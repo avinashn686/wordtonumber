@@ -244,7 +244,7 @@ def convert(number):
                 word = value + ' ' + word
         result_word_h = ' hundred'
         hundred_value = c[-3:]
-        if int(''.join(hundred_value[1:])) != 0:
+        if int(''.join(hundred_value)) != 0:
             hundred_words = hundred(hundred_value)
         else:
             hundred_words = ''
